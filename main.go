@@ -43,7 +43,7 @@ func main() {
 
 	commandLineInputs := os.Args
 	if len(commandLineInputs) < 2 {
-		fmt.Println("ERROR: incorrect number of arguments")
+		fmt.Println("incorrect number of arguments")
 		os.Exit(1)
 	}
 
