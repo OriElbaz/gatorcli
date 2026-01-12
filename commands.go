@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
-	"github.com/OriElbaz/gatorcli/internal/config"
+	"log"
+	"time"
 
+	"github.com/OriElbaz/gatorcli/internal/config"
+	"github.com/OriElbaz/gatorcli/internal/database"
+	"github.com/google/uuid"
 )
 
 func (c *commands) run(s *state, cmd command) error {
@@ -28,16 +34,16 @@ func (c *commands) register(name string, f func(*state, command) error) error {
 
 	fmt.Print("Command was successfully added\n")
 
-
 	return nil
 }
 
 type state struct {
-	config *config.Config
+	db  *database.Queries
+	cfg *config.Config
 }
 
 type command struct {
-	name string
+	name      string
 	arguments []string
 }
 
@@ -50,13 +56,52 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("Incorrect arguments for command\n")
 	}
 
-	username := cmd.arguments[0]
+	username := sql.NullString{
+		String: cmd.arguments[0],
+		Valid: true,
+	}
 
-	err := s.config.SetUser(username)
+	_, err := s.db.GetUser(context.Background(), username)
+	if err != nil {
+		return fmt.Errorf("Getting user from db: %v\n", err)
+	}
+
+	err = s.cfg.SetUser(username.String)
 	if err != nil {
 		return fmt.Errorf("Unable to set config username: %v\n", err)
 	}
 
-	fmt.Printf("Config username has been set successfully\n")
+	fmt.Printf("Logged in successfully\n")
 	return nil
+}
+
+func handlerRegister(s *state, cmd command) error { 
+	userName := sql.NullString{
+		String: cmd.arguments[0],
+		Valid:  true,
+	}
+
+	params := database.CreateUserParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name: userName,
+	}
+
+	_, err := s.db.CreateUser(context.Background(), params)
+	if err != nil {
+		return fmt.Errorf("Error creating user in db: %v\n", err)
+	}
+
+	fmt.Printf("Adding user to db was sucessful!\n")
+	log.Print(params)
+
+	// log them in //
+	err = s.cfg.SetUser(params.Name.String)
+	if err != nil {
+		return fmt.Errorf("Unable to set config username: %v\n", err)
+	}
+
+	return nil
+
 }
