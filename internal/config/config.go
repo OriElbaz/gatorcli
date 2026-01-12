@@ -1,9 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
-	"encoding/json"
+	"path/filepath"
 )
 
 const configFileName = ".gatorconfig.json"
@@ -13,78 +14,62 @@ type Config struct {
 	CurrentUserName string `json:"current_user_name"`
 }
 
+// Read turns config json file into config struct
 func Read() (Config, error) {
 	path, err := getConfigFilePath()
 	if err != nil {
-		fmt.Printf("Error with getting config file path: %v", err)
-		return Config{}, err
+		return Config{}, fmt.Errorf("get config file path: %w", err)
 	}
 
-	jsonData, err := os.ReadFile(path)
+	jsonDataBytes, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Printf("Error with JSONDATA: %v", err)
-		return Config{}, err
+		return Config{}, fmt.Errorf("read config file to bytes: %w", err)
 	}
 
 	var config Config
 
-	err = json.Unmarshal(jsonData, &config)
-	if err != nil {
-		fmt.Printf("Error with UNMARSHAL: %v\n", err)
-		return Config{}, err
+	if err = json.Unmarshal(jsonDataBytes, &config); err != nil {
+		return Config{}, fmt.Errorf("unmarshal to config struct: %w", err)
 	}
 
 	return config, nil
 }
 
-func (c Config) SetUser(username string) error {
+// SetUser updates config file username
+func (c *Config) SetUser(username string) error {
 	c.CurrentUserName = username
 
 	err := write(c)
 	if err != nil {
-		fmt.Printf("ERROR writing to config file: %v\n", err)
+		return fmt.Errorf("write to config: %w", err)
 	}
 
 	return nil
 }
 
-func write(cfg Config) error {
-	jsonData, err := json.MarshalIndent(cfg, "", " ")
+func write(c *Config) error {
+	jsonDataBytes, err := json.MarshalIndent(c, "", " ")
 	if err != nil {
-		fmt.Printf("ERROR converting config struct to JSON: %v\n", err)
+		return fmt.Errorf("marshal config to bytes: %w", err)
 	}
 
 	outputPath, err := getConfigFilePath()
 	if err != nil {
-		fmt.Printf("ERROR getting config file path: %v\n", err)
-		return err
+		return fmt.Errorf("get config file path: %w", err)
 	}
 
-	err = os.WriteFile(outputPath, jsonData, 0644)
-	if err != nil {
-		fmt.Printf("ERROR writing to config file: %v\n", err)
-		return err
+	if err = os.WriteFile(outputPath, jsonDataBytes, 0644); err != nil {
+		return fmt.Errorf("write to config file: %w", err)
 	}
 
 	return nil
-
 }
 
 func getConfigFilePath() (string, error) {
 	homePath, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Printf("Error with getting config file path: %v\n", err)
-		return "", err
+		return "", fmt.Errorf("get config file path: %w", err)
 	}
 
-	return homePath + "/" + configFileName, nil
+	return filepath.Join(homePath, configFileName), nil
 }
-
-/*
-Learnt:
-- os.HomeDir
-- os.ReadFile
-- os.WriteFile
-- json.MarshalIndent -> struct to JSON
-
-*/
