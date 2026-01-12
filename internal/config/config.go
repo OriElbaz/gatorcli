@@ -79,3 +79,12 @@ func getConfigFilePath() (string, error) {
 
 	return homePath + "/" + configFileName, nil
 }
+
+/*
+Learnt:
+- os.HomeDir
+- os.ReadFile
+- os.WriteFile
+- json.MarshalIndent -> struct to JSON
+
+*/

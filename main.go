@@ -20,7 +20,7 @@ func main() {
 		config: &configStruct,
 	}
 
-	// initialisecommands.go structs //
+	// initialise commands.go structs //
 	commandMap := map[string]func(*state, command) error{
 		"login" : handlerLogin,
 	}
@@ -29,7 +29,7 @@ func main() {
 		commands: commandMap,
 	}
 
-	// take command line arguments (inputs) and run command
+	// take command line arguments (inputs) and run command //
 	commandLineInputs := os.Args
 	if len(commandLineInputs) < 2 {
 		fmt.Println("ERROR: incorrect number of arguments")
