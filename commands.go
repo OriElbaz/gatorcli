@@ -12,23 +12,22 @@ import (
 	"github.com/google/uuid"
 )
 
+
 func (c *commands) run(s *state, cmd command) error {
 	commandName := cmd.name
 
-	err := c.commands[commandName](s, cmd)
-	if err != nil {
+	if err := c.commands[commandName](s, cmd); err != nil {
 		return fmt.Errorf("Error running command: %v\n", err)
 	}
 
 	return nil
 }
 
+
 func (c *commands) register(name string, f func(*state, command) error) error {
 	c.commands[name] = f
 
-	// check if added correctly
-	_, ok := c.commands[name]
-	if !ok {
+	if _, ok := c.commands[name]; !ok {
 		return fmt.Errorf("ERROR command was not added\n")
 	}
 
@@ -37,19 +36,23 @@ func (c *commands) register(name string, f func(*state, command) error) error {
 	return nil
 }
 
+
 type state struct {
 	db  *database.Queries
 	cfg *config.Config
 }
+
 
 type command struct {
 	name      string
 	arguments []string
 }
 
+
 type commands struct {
 	commands map[string]func(*state, command) error
 }
+
 
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.arguments) != 1 {
@@ -61,13 +64,11 @@ func handlerLogin(s *state, cmd command) error {
 		Valid: true,
 	}
 
-	_, err := s.db.GetUser(context.Background(), username)
-	if err != nil {
+	if _, err := s.db.GetUser(context.Background(), username); err != nil {
 		return fmt.Errorf("Getting user from db: %v\n", err)
 	}
 
-	err = s.cfg.SetUser(username.String)
-	if err != nil {
+	if err := s.cfg.SetUser(username.String); err != nil {
 		return fmt.Errorf("Unable to set config username: %v\n", err)
 	}
 
@@ -75,12 +76,9 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
-func handlerRegister(s *state, cmd command) error { 
-	userName := sql.NullString{
-		String: cmd.arguments[0],
-		Valid:  true,
-	}
 
+func handlerRegister(s *state, cmd command) error { 
+	userName := sql.NullString{String: cmd.arguments[0], Valid:  true}
 	params := database.CreateUserParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
@@ -88,20 +86,15 @@ func handlerRegister(s *state, cmd command) error {
 		Name: userName,
 	}
 
-	_, err := s.db.CreateUser(context.Background(), params)
-	if err != nil {
-		return fmt.Errorf("Error creating user in db: %v\n", err)
-	}
-
+	if _, err := s.db.CreateUser(context.Background(), params); err != nil {
+		return fmt.Errorf("create user in db: %w", err)
+	} 
 	fmt.Printf("Adding user to db was sucessful!\n")
 	log.Print(params)
 
-	// log them in //
-	err = s.cfg.SetUser(params.Name.String)
-	if err != nil {
-		return fmt.Errorf("Unable to set config username: %v\n", err)
+	if err := s.cfg.SetUser(params.Name.String); err != nil {
+		return fmt.Errorf("set config username: %w", err)
 	}
 
 	return nil
-
 }
