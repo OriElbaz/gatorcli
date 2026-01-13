@@ -7,7 +7,10 @@ import (
 	"github.com/OriElbaz/gatorcli/internal/config"
 	"github.com/OriElbaz/gatorcli/internal/database"
 	_ "github.com/lib/pq"
+	"github.com/OriElbaz/gatorcli/pkg/commands"
 )
+
+
 
 
 const dbURL = "postgres://orielbaz:@localhost:5432/gator?sslmode=disable"
@@ -27,21 +30,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	configState := state{
-		db:  dbQueries,
-		cfg: &configStruct,
+	configState := commands.State{
+		Db:  dbQueries,
+		Cfg: &configStruct,
 	}
 
-	commandMap := map[string]func(*state, command) error{
-		"login": handlerLogin,
-		"register": handlerRegister,
-		"reset": reset,
-		"users": users,
-		"agg": agg,
+	commandMap := map[string]func(*commands.State, commands.Command) error{
+		"login": commands.HandlerLogin,
+		"register": commands.HandlerRegister,
+		"reset": commands.Reset,
+		"users": commands.Users,
+		"agg": commands.Agg,
 	}
 
-	commandsStruct := commands{
-		commands: commandMap,
+	commandsStruct := commands.Commands{
+		Commands: commandMap,
 	}
 
 	commandLineInputs := os.Args
@@ -52,12 +55,12 @@ func main() {
 
 	commandName := commandLineInputs[1]
 	commandArgs := commandLineInputs[2:]
-	commandToRun := command{
-		name:      commandName,
-		arguments: commandArgs,
+	commandToRun := commands.Command{
+		Name:      commandName,
+		Arguments: commandArgs,
 	}
 
-	if err = commandsStruct.run(&configState, commandToRun); err != nil {
+	if err = commandsStruct.Run(&configState, commandToRun); err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 		os.Exit(1)
 	}

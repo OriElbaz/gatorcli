@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"context"
@@ -6,18 +6,17 @@ import (
 	"fmt"
 	"log"
 	"time"
-
 	"github.com/OriElbaz/gatorcli/internal/config"
 	"github.com/OriElbaz/gatorcli/internal/database"
 	"github.com/google/uuid"
-	"github.com/OriElbaz/gatorcli/rss"
+	"github.com/OriElbaz/gatorcli/pkg/rss"
 )
 
 
-func (c *commands) run(s *state, cmd command) error {
-	commandName := cmd.name
+func (c *Commands) Run(s *State, cmd Command) error {
+	commandName := cmd.Name
 
-	if err := c.commands[commandName](s, cmd); err != nil {
+	if err := c.Commands[commandName](s, cmd); err != nil {
 		return fmt.Errorf("Error running command: %v\n", err)
 	}
 
@@ -25,10 +24,10 @@ func (c *commands) run(s *state, cmd command) error {
 }
 
 
-func (c *commands) register(name string, f func(*state, command) error) error {
-	c.commands[name] = f
+func (c *Commands) register(name string, f func(*State, Command) error) error {
+	c.Commands[name] = f
 
-	if _, ok := c.commands[name]; !ok {
+	if _, ok := c.Commands[name]; !ok {
 		return fmt.Errorf("ERROR command was not added\n")
 	}
 
@@ -38,41 +37,41 @@ func (c *commands) register(name string, f func(*state, command) error) error {
 }
 
 /***** STRUCTS *****/
-type state struct {
-	db  *database.Queries
-	cfg *config.Config
+type State struct {
+	Db  *database.Queries
+	Cfg *config.Config
 }
 
 
-type command struct {
-	name      string
-	arguments []string
+type Command struct {
+	Name      string
+	Arguments []string
 }
 
 
-type commands struct {
-	commands map[string]func(*state, command) error
+type Commands struct {
+	Commands map[string]func(*State, Command) error
 }
 
 
 
 
 /****** COMMANDS ******/
-func handlerLogin(s *state, cmd command) error {
-	if len(cmd.arguments) != 1 {
+func HandlerLogin(s *State, cmd Command) error {
+	if len(cmd.Arguments) != 1 {
 		return fmt.Errorf("Incorrect arguments for command\n")
 	}
 
 	username := sql.NullString{
-		String: cmd.arguments[0],
+		String: cmd.Arguments[0],
 		Valid: true,
 	}
 
-	if _, err := s.db.GetUser(context.Background(), username); err != nil {
+	if _, err := s.Db.GetUser(context.Background(), username); err != nil {
 		return fmt.Errorf("Getting user from db: %v\n", err)
 	}
 
-	if err := s.cfg.SetUser(username.String); err != nil {
+	if err := s.Cfg.SetUser(username.String); err != nil {
 		return fmt.Errorf("Unable to set config username: %v\n", err)
 	}
 
@@ -81,8 +80,8 @@ func handlerLogin(s *state, cmd command) error {
 }
 
 
-func handlerRegister(s *state, cmd command) error { 
-	userName := sql.NullString{String: cmd.arguments[0], Valid:  true}
+func HandlerRegister(s *State, cmd Command) error { 
+	userName := sql.NullString{String: cmd.Arguments[0], Valid:  true}
 	params := database.CreateUserParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
@@ -90,13 +89,13 @@ func handlerRegister(s *state, cmd command) error {
 		Name: userName,
 	}
 
-	if _, err := s.db.CreateUser(context.Background(), params); err != nil {
+	if _, err := s.Db.CreateUser(context.Background(), params); err != nil {
 		return fmt.Errorf("create user in db: %w", err)
 	} 
 	fmt.Printf("Adding user to db was sucessful!\n")
 	log.Print(params)
 
-	if err := s.cfg.SetUser(params.Name.String); err != nil {
+	if err := s.Cfg.SetUser(params.Name.String); err != nil {
 		return fmt.Errorf("set config username: %w", err)
 	}
 
@@ -104,8 +103,8 @@ func handlerRegister(s *state, cmd command) error {
 }
 
 
-func reset(s *state, cmd command) error {
-	if err := s.db.ClearTableUsers(context.Background()); err != nil {
+func Reset(s *State, cmd Command) error {
+	if err := s.Db.ClearTableUsers(context.Background()); err != nil {
 		return fmt.Errorf("delete all users table: %w", err)
 	}
 
@@ -114,8 +113,8 @@ func reset(s *state, cmd command) error {
 }
 
 
-func users(s *state, cmd command) error {
-	users, err := s.db.GetUsers(context.Background())
+func Users(s *State, cmd Command) error {
+	users, err := s.Db.GetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("get users names from users table: %w", err)
 	}
@@ -124,7 +123,7 @@ func users(s *state, cmd command) error {
 		name := user.String
 
 		switch name {
-		case s.cfg.CurrentUserName:
+		case s.Cfg.CurrentUserName:
 			fmt.Printf("* %s (current)\n", name)
 		default:
 			fmt.Printf("* %s\n", name)
@@ -135,7 +134,7 @@ func users(s *state, cmd command) error {
 }
 
 
-func agg(s *state, cmd command) error {
+func Agg(s *State, cmd Command) error {
 	url := "https://www.wagslane.dev/index.xml"
 	feed, err := rss.FetchFeed(context.Background(), url)
 	if err != nil {
