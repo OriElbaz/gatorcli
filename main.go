@@ -35,6 +35,7 @@ func main() {
 	commandMap := map[string]func(*state, command) error{
 		"login": handlerLogin,
 		"register": handlerRegister,
+		"reset": reset,
 	}
 
 	commandsStruct := commands{
