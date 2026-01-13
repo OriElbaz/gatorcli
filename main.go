@@ -42,6 +42,7 @@ func main() {
 		"users": commands.Users,
 		"agg": commands.Agg,
 		"addfeed": commands.AddFeed,
+		"feeds": commands.Feeds,
 	}
 
 	commandsStruct := commands.Commands{
