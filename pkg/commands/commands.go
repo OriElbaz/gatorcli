@@ -202,3 +202,23 @@ func Feeds(s *State, cmd Command) error {
 
 	return nil
 }
+
+func Follow(s *State, cmd Command) error {
+	username := s.Cfg.CurrentUserName
+	urlToAdd := cmd.Arguments[0]
+
+	user, err := s.Db.GetUser(context.Background(), username)
+	if err != nil {
+		return fmt.Errorf("get user: %w", err)
+	}
+
+	
+
+	params := database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID: user.ID,
+		FeedID: ,
+	}
+}
