@@ -41,6 +41,7 @@ func main() {
 		"reset": commands.Reset,
 		"users": commands.Users,
 		"agg": commands.Agg,
+		"addfeed": commands.AddFeed,
 	}
 
 	commandsStruct := commands.Commands{

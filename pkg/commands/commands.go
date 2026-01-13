@@ -151,3 +151,39 @@ func Agg(s *State, cmd Command) error {
 
 	return nil
 }
+
+func AddFeed(s *State, cmd Command) error {
+
+	feedName := cmd.Arguments[0]
+	feedURL := cmd.Arguments[1]
+
+	currentUser := sql.NullString{
+		String: s.Cfg.CurrentUserName,
+		Valid: true,
+	}
+	
+	user, err := s.Db.GetUser(context.Background(), currentUser);
+	if err != nil {
+		return fmt.Errorf("get user: %w", err)
+	}
+
+	feedURLStruct := sql.NullString{
+		String: feedURL,
+		Valid: true,
+	}
+
+	feed := database.CreateFeedParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name: feedName,
+		Url: feedURLStruct,
+		UserID: user.ID,
+	}
+
+	if _, err = s.Db.CreateFeed(context.Background(), feed); err != nil {
+		return fmt.Errorf("create feed: %w", err)
+	}
+
+	return nil
+}
