@@ -10,6 +10,7 @@ import (
 	"github.com/OriElbaz/gatorcli/internal/config"
 	"github.com/OriElbaz/gatorcli/internal/database"
 	"github.com/google/uuid"
+	"github.com/OriElbaz/gatorcli/rss"
 )
 
 
@@ -36,7 +37,7 @@ func (c *commands) register(name string, f func(*state, command) error) error {
 	return nil
 }
 
-
+/***** STRUCTS *****/
 type state struct {
 	db  *database.Queries
 	cfg *config.Config
@@ -54,6 +55,9 @@ type commands struct {
 }
 
 
+
+
+/****** COMMANDS ******/
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.arguments) != 1 {
 		return fmt.Errorf("Incorrect arguments for command\n")
@@ -99,6 +103,7 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+
 func reset(s *state, cmd command) error {
 	if err := s.db.ClearTableUsers(context.Background()); err != nil {
 		return fmt.Errorf("delete all users table: %w", err)
@@ -107,6 +112,7 @@ func reset(s *state, cmd command) error {
 	fmt.Println("users table cleared successfully")
 	return nil
 }
+
 
 func users(s *state, cmd command) error {
 	users, err := s.db.GetUsers(context.Background())
@@ -123,6 +129,25 @@ func users(s *state, cmd command) error {
 		default:
 			fmt.Printf("* %s\n", name)
 		}
+	}
+
+	return nil
+}
+
+
+func agg(s *state, cmd command) error {
+	url := "https://www.wagslane.dev/index.xml"
+	feed, err := rss.FetchFeed(context.Background(), url)
+	if err != nil {
+		return fmt.Errorf("fetch feed: %w", err)
+	}
+
+	fmt.Println("=== FEED ===")
+	fmt.Printf("%s\n", feed.Channel.Title)
+	fmt.Printf("%s\n", feed.Channel.Description)
+	for _, item := range feed.Channel.Item {
+		fmt.Printf("- Title: %s\n", item.Title)
+		fmt.Printf("- Description: %s\n", item.Description)
 	}
 
 	return nil
