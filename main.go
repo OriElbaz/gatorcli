@@ -36,6 +36,7 @@ func main() {
 		"login": handlerLogin,
 		"register": handlerRegister,
 		"reset": reset,
+		"users": users,
 	}
 
 	commandsStruct := commands{

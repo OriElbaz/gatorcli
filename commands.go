@@ -107,3 +107,23 @@ func reset(s *state, cmd command) error {
 	fmt.Println("users table cleared successfully")
 	return nil
 }
+
+func users(s *state, cmd command) error {
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("get users names from users table: %w", err)
+	}
+
+	for _, user := range users{
+		name := user.String
+
+		switch name {
+		case s.cfg.CurrentUserName:
+			fmt.Printf("* %s (current)\n", name)
+		default:
+			fmt.Printf("* %s\n", name)
+		}
+	}
+
+	return nil
+}
