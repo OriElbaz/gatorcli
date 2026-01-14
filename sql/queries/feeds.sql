@@ -10,3 +10,8 @@ JOIN users ON feeds.user_id = users.id;
 -- name: GetFeed :one
 SELECT * fROM feeds
 WHERE feeds.url = $1;
+
+-- name: MarkFetched :exec
+UPDATE feeds
+SET last_fetched_at = NOW(), updated_at = NOW()
+WHERE feeds.id = $1;
