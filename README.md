@@ -6,11 +6,11 @@ This project was for me to learn how to use PostgreSQL along with Goose and SQLC
 * PostgreSQL 18+
 
 ## How to Run
-- Install project:<br>
-`go install github.com/OriElbaz/gatorcli@latest`
-Alternatively, clone the repo and run `go build -o gator`.
+Install project:<br>
+`go install github.com/OriElbaz/gatorcli@latest`<br>
+Alternatively, clone the repo and run `go build -o gator`.<br>
 
-- Set up config file, just change "your-username":<br>
+Set up config file, just change "your-username":<br>
 `
 {
  "db_url": "postgres://YOUR-USERNAME:@localhost:5432/gator?sslmode=disable",
