@@ -30,8 +30,6 @@ func (c *Commands) register(name string, f func(*State, Command) error) error {
 		return fmt.Errorf("ERROR command was not added\n")
 	}
 
-	fmt.Print("Command was successfully added\n")
-
 	return nil
 }
 
@@ -51,6 +49,24 @@ type Command struct {
 
 type Commands struct {
 	Commands map[string]func(*State, Command) error
+}
+
+
+/****** MIDDLEWARE ******/
+func MiddlewareLoggedIn(handler func(s *State, cmd Command, user database.User) error) func(*State, Command) error {
+	return func (s *State, cmd Command) error {
+		userNullString := sql.NullString{
+			String: s.Cfg.CurrentUserName,
+			Valid: true,
+		}
+
+		user, err := s.Db.GetUser(context.Background(), userNullString);
+		if err != nil {
+			return fmt.Errorf("get user: %w", err)
+		}
+
+		return handler(s, cmd, user)
+	}
 }
 
 
@@ -150,7 +166,7 @@ func Agg(s *State, cmd Command) error {
 }
 
 
-func AddFeed(s *State, cmd Command) error {
+func AddFeed(s *State, cmd Command, user database.User) error {
 
 	feedName := cmd.Arguments[0]
 	feedURL := cmd.Arguments[1]
@@ -160,27 +176,22 @@ func AddFeed(s *State, cmd Command) error {
 		Valid: true,
 	}
 
-	userId, err := getUserId(s)
-	if err != nil {
-		return fmt.Errorf("get user id: %w", err)
-	}
-
 	feed := database.CreateFeedParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name: feedName,
 		Url: feedURLStruct,
-		UserID: userId,
+		UserID: user.ID,
 	}
 
-	if _, err = s.Db.CreateFeed(context.Background(), feed); err != nil {
+	if _, err := s.Db.CreateFeed(context.Background(), feed); err != nil {
 		return fmt.Errorf("create feed: %w", err)
 	}
 
 	fmt.Printf("Feed added successfully\n")
 
-	if _, err = createFeedFollowHelper(s, userId, feed.ID); err != nil {
+	if _, err := createFeedFollowHelper(s, user.ID, feed.ID); err != nil {
 		return fmt.Errorf("create feed follow helper: %w", err)
 	}
 
@@ -205,15 +216,10 @@ func Feeds(s *State, cmd Command) error {
 }
 
 
-func Follow(s *State, cmd Command) error {
+func Follow(s *State, cmd Command, user database.User) error {
 	urlToAdd := sql.NullString{
 		String: cmd.Arguments[0],
 		Valid: true,
-	}
-
-	userId, err := getUserId(s)
-	if err != nil {
-		return fmt.Errorf("get user id: %w", err)
 	}
 
 	feed, err := s.Db.GetFeed(context.Background(), urlToAdd)
@@ -221,7 +227,7 @@ func Follow(s *State, cmd Command) error {
 		return fmt.Errorf("get feed: %w", err)
 	}
 
-	if _, err = createFeedFollowHelper(s, userId, feed.ID); err != nil {
+	if _, err = createFeedFollowHelper(s, user.ID, feed.ID); err != nil {
 		return fmt.Errorf("create feed follow helper: %w", err)
 	}
 
@@ -230,13 +236,9 @@ func Follow(s *State, cmd Command) error {
 }
 
 
-func Following(s *State, cmd Command) error {
-	userId, err := getUserId(s)
-	if err != nil {
-		return fmt.Errorf("get user id: %w", err)
-	}
+func Following(s *State, cmd Command, user database.User) error {
 
-	feedFollows, err := s.Db.GetFeedFollowsForUser(context.Background(), userId)
+	feedFollows, err := s.Db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return fmt.Errorf("get feed follows: %w", err)
 	}
@@ -250,21 +252,6 @@ func Following(s *State, cmd Command) error {
 
 
 /** HELPER FUNCTIONS **/
-func getUserId(s *State) (uuid.UUID, error) {
-	username := sql.NullString{
-		String: s.Cfg.CurrentUserName,
-		Valid: true,
-	}
-
-	user, err := s.Db.GetUser(context.Background(), username)
-	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("get user: %w", err)
-	}
-
-	return user.ID, nil
-
-}
-
 func createFeedFollowHelper(s *State, userId uuid.UUID, feedId uuid.UUID) (database.CreateFeedFollowRow, error) {
 	params := database.CreateFeedFollowParams{
 		ID: uuid.New(),

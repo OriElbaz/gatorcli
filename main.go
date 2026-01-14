@@ -41,10 +41,10 @@ func main() {
 		"reset": commands.Reset,
 		"users": commands.Users,
 		"agg": commands.Agg,
-		"addfeed": commands.AddFeed,
+		"addfeed": commands.MiddlewareLoggedIn(commands.AddFeed),
 		"feeds": commands.Feeds,
-		"follow": commands.Follow,
-		"following": commands.Following,
+		"follow": commands.MiddlewareLoggedIn(commands.Follow),
+		"following": commands.MiddlewareLoggedIn(commands.Following),
 	}
 
 	commandsStruct := commands.Commands{
