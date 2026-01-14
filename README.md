@@ -1,5 +1,5 @@
 # Blog Aggregator CLI
-This project was built to explore the integration of Golang with PostgreSQL using Goose for migrations and SQLC for type-safe SQL generation. This project is part of [Boot.dev's](https://boot.dev) backend Golang course.
+This project was for me to learn how to use PostgreSQL along with Goose and SQLC. It was apart of [Boot.dev's](https://boot.dev) Golang course.
 
 ## Dependencies
 * Golang
