@@ -1,5 +1,5 @@
 # Blog Aggregator CLI
-This project was for me to learn how to use PostgreSQL along with Goose and SQLC. It was apart of [Boot.dev's](https://boot.dev) Golang course.
+This project was built to explore the integration of Golang with PostgreSQL using Goose for migrations and SQLC for type-safe SQL generation. This project is part of [Boot.dev's](https://boot.dev) backend Golang course.
 
 ## Dependencies
 * Golang
@@ -8,9 +8,7 @@ This project was for me to learn how to use PostgreSQL along with Goose and SQLC
 ## How to Run
 - Install project:<br>
 `go install github.com/OriElbaz/gatorcli@latest`
-
-OR<br>
-`go build`
+Alternatively, clone the repo and run `go build -o gator`.
 
 - Set up config file, just change "your-username":<br>
 `
