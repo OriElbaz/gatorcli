@@ -54,5 +54,5 @@ These commands require the user to be **logged in**.
 These commands handle the background processing and viewing of posts.
 
 * **`agg <time_duration>`** Starts the aggregator. It will fetch the next pending feed every interval (e.g., `1m`, `1h`, or `30s`).
-*Example: `gator agg 1m*`
+*Example: `gator agg 1m`
 * **`browse [limit]`** *(Requires Login)* Displays posts from the feeds the current user follows. You can optionally provide a limit (e.g., `gator browse 5`).
