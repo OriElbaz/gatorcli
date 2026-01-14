@@ -11,12 +11,12 @@ Install project:<br>
 Alternatively, clone the repo and run `go build -o gator`.<br>
 
 Set up config file, just change "your-username":<br>
-`
+```
 {
  "db_url": "postgres://YOUR-USERNAME:@localhost:5432/gator?sslmode=disable",
  "current_user_name": ""
 }
-`
+```
 
 ## Commands
 Because I really dont want to spend the time, I'll hand it off to Gemini to explain how to use the commands:<br>
