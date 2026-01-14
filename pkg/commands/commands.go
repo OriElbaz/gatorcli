@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 	"github.com/OriElbaz/gatorcli/internal/config"
 	"github.com/OriElbaz/gatorcli/internal/database"
@@ -93,7 +92,6 @@ func HandlerRegister(s *State, cmd Command) error {
 		return fmt.Errorf("create user in db: %w", err)
 	} 
 	fmt.Printf("Adding user to db was sucessful!\n")
-	log.Print(params)
 
 	if err := s.Cfg.SetUser(params.Name.String); err != nil {
 		return fmt.Errorf("set config username: %w", err)
@@ -185,6 +183,8 @@ func AddFeed(s *State, cmd Command) error {
 		return fmt.Errorf("create feed: %w", err)
 	}
 
+	fmt.Printf("Feed added successfully")
+
 	return nil
 }
 
@@ -195,30 +195,47 @@ func Feeds(s *State, cmd Command) error {
 	}
 
 	for _, feed := range feeds {
-		fmt.Printf("Name: %s", feed.Name)
-		fmt.Printf("URL: %s", feed.Url.String)
-		fmt.Printf("User: %s", feed.UserName.String)
+
+		fmt.Printf("== %s ==\n", feed.Name)
+		fmt.Printf("- url: %s\n", feed.Url.String)
+		fmt.Printf("- user: %s\n", feed.UserName.String)
 	}
 
 	return nil
 }
 
 func Follow(s *State, cmd Command) error {
-	username := s.Cfg.CurrentUserName
-	urlToAdd := cmd.Arguments[0]
+	username := sql.NullString{
+		String: s.Cfg.CurrentUserName,
+		Valid: true,
+	}
+	urlToAdd := sql.NullString{
+		String: cmd.Arguments[0],
+		Valid: true,
+	}
 
 	user, err := s.Db.GetUser(context.Background(), username)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}
 
-	
+	feed, err := s.Db.GetFeed(context.Background(), urlToAdd)
+	if err != nil {
+		return fmt.Errorf("get feed: %w", err)
+	}
 
 	params := database.CreateFeedFollowParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		UserID: user.ID,
-		FeedID: ,
+		FeedID: feed.ID,
 	}
+
+	if _, err = s.Db.CreateFeedFollow(context.Background(), params); err != nil {
+		return fmt.Errorf("create feed follow: %w", err)
+	}
+
+	fmt.Printf("Feed follow created successfully!")
+	return nil
 }
