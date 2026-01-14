@@ -290,15 +290,40 @@ func scrapeFeeds(s *State) error {
 		return fmt.Errorf("mark fetched: %w", err)
 	}
 
-	fmt.Printf("=== Successfully Scraped: %s ===\n", feedToFetch.Name)
-	fmt.Printf("%s\n", feed.Channel.Title)
-	fmt.Printf("%s\n", feed.Channel.Description)
+	params := database.CreatePostParams{}
+
 	for _, item := range feed.Channel.Item {
-		fmt.Printf("- Title: %s\n", item.Title)
-		fmt.Printf("- Description: %s\n", item.Description)
+		
+		description := sql.NullString{
+		String: item.Description,
+		Valid: true,
+		}
+
+		publishedTime, err := time.Parse("Mon, 02 Jan 2006 15:04:05 MST", item.PubDate)
+		if err != nil {
+			return fmt.Errorf("parse pubdate time: %w", err)
+		}
+
+		params = database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title: item.Title,
+			Url: item.Link,
+			Description: description,
+			PublishedAt: publishedTime,
+			FeedID: feedToFetch.ID,
+		}
+
+		fmt.Printf("Created Post: %s\n", item.Title)
 	}
-	fmt.Print("\n")
+
+	if _, err = s.Db.CreatePost(context.Background(), params); err != nil {
+		return fmt.Errorf("create post: %w", err)
+	}
+
 	return nil
+
 }
 
 
