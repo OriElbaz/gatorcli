@@ -35,6 +35,7 @@ func (c *Commands) register(name string, f func(*State, Command) error) error {
 	return nil
 }
 
+
 /***** STRUCTS *****/
 type State struct {
 	Db  *database.Queries
@@ -51,8 +52,6 @@ type Command struct {
 type Commands struct {
 	Commands map[string]func(*State, Command) error
 }
-
-
 
 
 /****** COMMANDS ******/
@@ -251,7 +250,6 @@ func Following(s *State, cmd Command) error {
 
 
 /** HELPER FUNCTIONS **/
-
 func getUserId(s *State) (uuid.UUID, error) {
 	username := sql.NullString{
 		String: s.Cfg.CurrentUserName,
