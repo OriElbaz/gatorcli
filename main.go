@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
 	"github.com/OriElbaz/gatorcli/internal/config"
 	"github.com/OriElbaz/gatorcli/internal/database"
-	_ "github.com/lib/pq"
 	"github.com/OriElbaz/gatorcli/pkg/commands"
+	_ "github.com/lib/pq"
 )
 
 
@@ -45,6 +46,7 @@ func main() {
 		"feeds": commands.Feeds,
 		"follow": commands.MiddlewareLoggedIn(commands.Follow),
 		"following": commands.MiddlewareLoggedIn(commands.Following),
+		"unfollow": commands.MiddlewareLoggedIn(commands.Unfollow),
 	}
 
 	commandsStruct := commands.Commands{

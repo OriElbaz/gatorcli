@@ -251,6 +251,31 @@ func Following(s *State, cmd Command, user database.User) error {
 }
 
 
+func Unfollow(s *State, cmd Command, user database.User) error {
+	unfollowUrl := sql.NullString{
+		String: cmd.Arguments[0],
+		Valid: true,
+	}
+
+	feed, err := s.Db.GetFeed(context.Background(), unfollowUrl)
+	if err != nil {
+		return fmt.Errorf("get feed %w", err)
+	}
+
+	params := database.UnfollowFeedParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	}
+
+	if err = s.Db.UnfollowFeed(context.Background(), params); err != nil {
+		return fmt.Errorf("unfollow feed: %w", err)
+	}
+
+	fmt.Printf("Unfollowed %s successfully", feed.Name)
+	return nil
+}
+
+
 /** HELPER FUNCTIONS **/
 func createFeedFollowHelper(s *State, userId uuid.UUID, feedId uuid.UUID) (database.CreateFeedFollowRow, error) {
 	params := database.CreateFeedFollowParams{
