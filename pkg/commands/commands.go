@@ -9,6 +9,7 @@ import (
 	"github.com/OriElbaz/gatorcli/internal/database"
 	"github.com/google/uuid"
 	"github.com/OriElbaz/gatorcli/pkg/rss"
+	"strconv"
 )
 
 
@@ -292,6 +293,8 @@ func scrapeFeeds(s *State) error {
 
 	params := database.CreatePostParams{}
 
+	fmt.Printf("***** %s *****\n", feed.Channel.Title)
+
 	for _, item := range feed.Channel.Item {
 		
 		description := sql.NullString{
@@ -315,16 +318,46 @@ func scrapeFeeds(s *State) error {
 			FeedID: feedToFetch.ID,
 		}
 
+		if _, err = s.Db.CreatePost(context.Background(), params); err != nil {
+		return fmt.Errorf("*IGNORE* create post: %w", err)
+		}
+
 		fmt.Printf("Created Post: %s\n", item.Title)
 	}
 
-	if _, err = s.Db.CreatePost(context.Background(), params); err != nil {
-		return fmt.Errorf("create post: %w", err)
-	}
+	
 
 	return nil
 
 }
+
+
+func Browse(s *State, cmd Command, user database.User) error {
+	var limit int64
+	if len(cmd.Arguments) > 0 {
+		limit, _ = strconv.ParseInt(cmd.Arguments[0], 10, 64);
+	}
+
+	params := database.GetPostsParams{
+		UserID: user.ID,
+		Limit: int32(limit),
+	}
+
+	posts, err := s.Db.GetPosts(context.Background(), params)
+	if err != nil {
+		return fmt.Errorf("get posts: %w", err)
+	}
+
+	for _, post := range posts {
+		fmt.Printf("*** %s: %s\n", post.Title, post.Url)
+		fmt.Print("Description: \n")
+		fmt.Printf("%s\n\n", post.Description.String)
+	}
+
+	return nil
+}
+
+
 
 
 /** HELPER FUNCTIONS **/

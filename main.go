@@ -47,6 +47,7 @@ func main() {
 		"follow": commands.MiddlewareLoggedIn(commands.Follow),
 		"following": commands.MiddlewareLoggedIn(commands.Following),
 		"unfollow": commands.MiddlewareLoggedIn(commands.Unfollow),
+		"browse": commands.MiddlewareLoggedIn(commands.Browse),
 	}
 
 	commandsStruct := commands.Commands{
