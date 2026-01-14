@@ -103,3 +103,94 @@ func TestFetchFeed(t *testing.T) {
 	}
 	fmt.Print("-------------------------------\n")
 }
+
+
+func TestCleanText(t *testing.T) {
+    type testCase struct {
+        name     string
+        input    *RSSFeed
+        expected *RSSFeed
+    }
+
+    tests := []testCase{
+        {
+            name: "Strips HTML and decodes entities",
+            input: &RSSFeed{
+                Channel: struct {
+                    Title       string    `xml:"title"`
+                    Link        string    `xml:"link"`
+                    Description string    `xml:"description"`
+                    Item        []RSSItem `xml:"item"`
+                }{
+                    Title:       "<h1>Go Blog &amp; News</h1>",
+                    Description: "<p>The <b>latest</b> from the team.</p>",
+                    Item: []RSSItem{
+                        {
+                            Title:       "Using &lt;defer&gt; in Go",
+                            Description: "<div>Learning about <code>defer</code> keywords.</div>",
+                        },
+                    },
+                },
+            },
+            expected: &RSSFeed{
+                Channel: struct {
+                    Title       string    `xml:"title"`
+                    Link        string    `xml:"link"`
+                    Description string    `xml:"description"`
+                    Item        []RSSItem `xml:"item"`
+                }{
+                    Title:       "Go Blog & News",
+                    Description: "The latest from the team.",
+                    Item: []RSSItem{
+                        {
+                            Title:       "Using <defer> in Go",
+                            Description: "Learning about defer keywords.",
+                        },
+                    },
+                },
+            },
+        },
+        {
+            name: "Empty content remains empty",
+            input: &RSSFeed{},
+            expected: &RSSFeed{},
+        },
+    }
+
+    fmt.Println("\n--- Starting CleanText Refactored Tests ---")
+
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T) {
+            err := cleanText(tc.input)
+            if err != nil {
+                t.Fatalf("unexpected error: %v", err)
+            }
+
+            // Verify Channel Metadata
+            if tc.input.Channel.Title != tc.expected.Channel.Title {
+                t.Errorf("%s: Title mismatch: got %q, want %q", tc.name, tc.input.Channel.Title, tc.expected.Channel.Title)
+            }
+
+            if tc.input.Channel.Description != tc.expected.Channel.Description {
+                t.Errorf("%s: Description mismatch: got %q, want %q", tc.name, tc.input.Channel.Description, tc.expected.Channel.Description)
+            }
+
+            // Verify Items
+            if len(tc.input.Channel.Item) != len(tc.expected.Channel.Item) {
+                t.Fatalf("%s: Item count mismatch: got %d, want %d", tc.name, len(tc.input.Channel.Item), len(tc.expected.Channel.Item))
+            }
+
+            for i, item := range tc.input.Channel.Item {
+                expectedItem := tc.expected.Channel.Item[i]
+                if item.Title != expectedItem.Title {
+                    t.Errorf("%s: Item[%d] Title mismatch: got %q, want %q", tc.name, i, item.Title, expectedItem.Title)
+                }
+                if item.Description != expectedItem.Description {
+                    t.Errorf("%s: Item[%d] Description mismatch: got %q, want %q", tc.name, i, item.Description, expectedItem.Description)
+                }
+            }
+            
+            fmt.Printf("✅ Test Passed: %s\n", tc.name)
+        })
+    }
+}

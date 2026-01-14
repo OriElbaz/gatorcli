@@ -7,6 +7,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 
@@ -54,20 +55,20 @@ func FetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 		return &RSSFeed{}, fmt.Errorf("unmarshal htmx: %w", err)
 	}
 
-	unescapeHtmx(&htmx)
+	cleanText(&htmx)
 
 	return &htmx, nil
 }
 
-func unescapeHtmx (feed *RSSFeed) error {
-	
-	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
-	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
-	feed.Channel.Description = html.UnescapeString(feed.Channel.Description)
+func cleanText (feed *RSSFeed) error {
+	p := bluemonday.StrictPolicy()
+
+	feed.Channel.Title = html.UnescapeString(p.Sanitize(feed.Channel.Title))
+	feed.Channel.Description = html.UnescapeString(p.Sanitize(feed.Channel.Description))
 	
 	for i := range feed.Channel.Item {
-		feed.Channel.Item[i].Title = html.UnescapeString(feed.Channel.Item[i].Title)
-		feed.Channel.Item[i].Description = html.UnescapeString(feed.Channel.Item[i].Description)
+		feed.Channel.Item[i].Title = html.UnescapeString(p.Sanitize(feed.Channel.Item[i].Title))
+		feed.Channel.Item[i].Description = html.UnescapeString(p.Sanitize(feed.Channel.Item[i].Description))
 	}
 
 	return nil
