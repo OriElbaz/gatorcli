@@ -44,6 +44,7 @@ func main() {
 		"addfeed": commands.AddFeed,
 		"feeds": commands.Feeds,
 		"follow": commands.Follow,
+		"following": commands.Following,
 	}
 
 	commandsStruct := commands.Commands{
