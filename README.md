@@ -6,14 +6,13 @@ This project was for me to learn how to use PostgreSQL along with Goose and SQLC
 * PostgreSQL 18+
 
 ## How to Run
-- Install project:
+- Install project:<br>
 `go install github.com/OriElbaz/gatorcli@latest`
 
-OR
-
+OR<br>
 `go build`
 
-- Set up config file, just change "your-username":
+- Set up config file, just change "your-username":<br>
 `
 {
  "db_url": "postgres://YOUR-USERNAME:@localhost:5432/gator?sslmode=disable",
@@ -22,7 +21,8 @@ OR
 `
 
 ## Commands
-Because I really dont want to spend the time, I'll hand it off to Gemini to explain how to use the commands:
+Because I really dont want to spend the time, I'll hand it off to Gemini to explain how to use the commands:<br>
+
 This README section is designed to be clear and informative, categorizing the commands based on whether they require an active login session (as indicated by your `MiddlewareLoggedIn` wrapper).
 
 Gator CLI allows you to manage users, follow RSS feeds, and aggregate posts. Usage follows the pattern:
