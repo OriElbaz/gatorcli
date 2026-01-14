@@ -67,7 +67,8 @@ func main() {
 	}
 
 	if err = commandsStruct.Run(&configState, commandToRun); err != nil {
-		fmt.Printf("ERROR: %v\n", err)
-		os.Exit(1)
+	fmt.Printf("ERROR: %v", err)
+	os.Exit(1)
 	}
+
 }

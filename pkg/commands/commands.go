@@ -147,25 +147,6 @@ func Users(s *State, cmd Command) error {
 }
 
 
-func Agg(s *State, cmd Command) error {
-	url := "https://www.wagslane.dev/index.xml"
-	feed, err := rss.FetchFeed(context.Background(), url)
-	if err != nil {
-		return fmt.Errorf("fetch feed: %w", err)
-	}
-
-	fmt.Println("=== FEED ===")
-	fmt.Printf("%s\n", feed.Channel.Title)
-	fmt.Printf("%s\n", feed.Channel.Description)
-	for _, item := range feed.Channel.Item {
-		fmt.Printf("- Title: %s\n", item.Title)
-		fmt.Printf("- Description: %s\n", item.Description)
-	}
-
-	return nil
-}
-
-
 func AddFeed(s *State, cmd Command, user database.User) error {
 
 	feedName := cmd.Arguments[0]
@@ -272,6 +253,51 @@ func Unfollow(s *State, cmd Command, user database.User) error {
 	}
 
 	fmt.Printf("Unfollowed %s successfully", feed.Name)
+	return nil
+}
+
+
+func Agg(s *State, cmd Command) error {
+	timeString := cmd.Arguments[0]
+	timeBetweenRequests, err := time.ParseDuration(timeString)
+	if err != nil {
+		return fmt.Errorf("parse duration: %w", err)
+	}
+
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		err := scrapeFeeds(s)
+		if err != nil {
+			fmt.Printf("[%s] ERROR: %v\n", time.Now().Format("15:04:05"), err)
+            continue
+		}
+	}
+}
+
+
+func scrapeFeeds(s *State) error {
+	feedToFetch, err := s.Db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return fmt.Errorf("get next feed to fetchL %w", err)
+	}
+
+	feed, err := rss.FetchFeed(context.Background(), feedToFetch.Url.String)
+	if err != nil {
+		return fmt.Errorf("fetch feed: %w", err)
+	}
+
+	if err := s.Db.MarkFetched(context.Background(), feedToFetch.ID); err != nil {
+		return fmt.Errorf("mark fetched: %w", err)
+	}
+
+	fmt.Printf("=== Successfully Scraped: %s ===\n", feedToFetch.Name)
+	fmt.Printf("%s\n", feed.Channel.Title)
+	fmt.Printf("%s\n", feed.Channel.Description)
+	for _, item := range feed.Channel.Item {
+		fmt.Printf("- Title: %s\n", item.Title)
+		fmt.Printf("- Description: %s\n", item.Description)
+	}
+	fmt.Print("\n")
 	return nil
 }
 
