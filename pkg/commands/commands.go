@@ -150,6 +150,7 @@ func Agg(s *State, cmd Command) error {
 	return nil
 }
 
+
 func AddFeed(s *State, cmd Command) error {
 
 	feedName := cmd.Arguments[0]
@@ -188,6 +189,7 @@ func AddFeed(s *State, cmd Command) error {
 	return nil
 }
 
+
 func Feeds(s *State, cmd Command) error {
 	feeds, err := s.Db.ListFeeds(context.Background())
 	if err != nil {
@@ -203,6 +205,7 @@ func Feeds(s *State, cmd Command) error {
 
 	return nil
 }
+
 
 func Follow(s *State, cmd Command) error {
 	username := sql.NullString{
@@ -239,3 +242,5 @@ func Follow(s *State, cmd Command) error {
 	fmt.Printf("Feed follow created successfully!")
 	return nil
 }
+
+
